@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thu Trang Work - Personal Productivity Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        pastel: {
+                            yellow: '#FEF08A',
+                            lightYellow: '#FEF9C3',
+                            darkYellow: '#EAB308',
+                            bgLight: '#FAF9F5',
+                            cardLight: '#FFFFFF',
+                            cardDark: '#1E293B'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        .scrollbar-none::-webkit-scrollbar { display: none; }
+        .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-pastel-bgLight dark:bg-slate-900 text-slate-800 dark:text-slate-100 transition-colors duration-200">
+
+    <div class="flex h-screen overflow-hidden">
+
+        <!-- DESKTOP SIDEBAR -->
+        <aside class="hidden md:flex flex-col w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 z-20 shrink-0">
+            <div class="p-5 border-b border-slate-100 dark:border-slate-700/60 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-300 dark:bg-amber-500 flex items-center justify-center shadow-md font-bold text-amber-900 dark:text-slate-900 text-xl">
+                        TT
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-slate-900 dark:text-white leading-tight">Thu Trang Work</h1>
+                        <span class="text-xs text-amber-600 dark:text-amber-400 font-medium">Personal Workspace</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-150 bg-amber-100 text-amber-900 dark:bg-amber-500/20 dark:text-amber-300">
+                    <i class="fa-solid fa-chart-pie text-lg w-5"></i>
+                    <span>Dashboard Today</span>
+                </button>
+
+                <button onclick="switchTab('tasks')" id="nav-tasks" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-150 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700/50">
+                    <i class="fa-solid fa-list-check text-lg w-5"></i>
+                    <span>Danh sách Công việc</span>
+                </button>
+
+                <button onclick="switchTab('health')" id="nav-health" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-150 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700/50">
+                    <i class="fa-solid fa-heart-pulse text-lg w-5"></i>
+                    <span>Chăm sóc Sức khỏe</span>
+                </button>
+
+                <button onclick="switchTab('analytics')" id="nav-analytics" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-150 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700/50">
+                    <i class="fa-solid fa-clock-rotate-left text-lg w-5"></i>
+                    <span>Lịch sử & Phân tích</span>
+                </button>
+            </nav>
+
+            <!-- Status Indicator for Firebase Sync -->
+            <div class="px-4 py-2 text-xs font-semibold text-slate-500 flex items-center justify-between border-t border-slate-100 dark:border-slate-700/60">
+                <span>Đồng bộ thời gian thực:</span>
+                <span id="sync-status" class="inline-flex items-center text-emerald-600 dark:text-emerald-400">
+                    <i class="fa-solid fa-circle text-[8px] mr-1 animate-pulse"></i> <span id="sync-text">Đã kết nối</span>
+                </span>
+            </div>
+
+            <!-- Bottom Theme Toggle -->
+            <div class="p-4 border-t border-slate-100 dark:border-slate-700/60">
+                <button onclick="toggleDarkMode()" class="w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium bg-slate-100 dark:bg-slate-700/60 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                    <span class="flex items-center space-x-2">
+                        <i id="theme-icon" class="fa-solid fa-moon text-amber-500"></i>
+                        <span id="theme-text">Chế độ tối</span>
+                    </span>
+                    <div class="w-8 h-4 bg-slate-300 dark:bg-amber-500 rounded-full relative transition">
+                        <div id="theme-dot" class="w-3 h-3 bg-white rounded-full absolute top-0.5 left-0.5 transition-transform duration-200 dark:transform dark:translate-x-4"></div>
+                    </div>
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT AREA -->
+        <main class="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50/50 dark:bg-slate-900">
+            
+            <!-- TOP BAR -->
+            <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-4 py-3 flex items-center justify-between shrink-0">
+                <div class="flex items-center space-x-3">
+                    <div class="md:hidden w-8 h-8 rounded-lg bg-amber-300 flex items-center justify-center font-bold text-amber-900 text-sm">
+                        TT
+                    </div>
+                    <div>
+                        <h2 id="page-title" class="text-lg font-bold text-slate-800 dark:text-white">Dashboard Today</h2>
+                    </div>
+                </div>
+
+                <!-- Right Action Bar: Notification Toggle + Date -->
+                <div class="flex items-center space-x-3">
+                    <button id="notif-btn" onclick="requestNotificationPermission()" class="flex items-center space-x-2 px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-100 hover:bg-amber-200 text-amber-900 dark:bg-slate-700 dark:text-amber-300 dark:hover:bg-slate-600 transition">
+                        <i id="notif-icon" class="fa-solid fa-bell"></i>
+                        <span id="notif-status-text">Bật thông báo đẩy</span>
+                    </button>
+
+                    <!-- Date & Lunar Date Badge -->
+                    <div class="hidden sm:flex items-center space-x-2 bg-amber-50 dark:bg-slate-700/60 border border-amber-200/60 dark:border-slate-600 px-3 py-1.5 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-200">
+                        <i class="fa-regular fa-calendar text-amber-600 dark:text-amber-400"></i>
+                        <span id="header-date">...</span>
+                        <span class="text-amber-300 dark:text-slate-500">|</span>
+                        <span id="header-lunar" class="text-amber-700 dark:text-amber-300 font-semibold">...</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- CONTAINER FOR TABS -->
+            <div class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 pb-24 md:pb-6">
+
+                <!-- ================= TAB 1: DASHBOARD TODAY ================= -->
+                <div id="tab-dashboard" class="tab-content space-y-6">
+                    
+                    <!-- Motivational Quote Banner -->
+                    <div class="bg-gradient-to-r from-amber-100 via-amber-50 to-orange-100 dark:from-slate-800 dark:via-slate-800/90 dark:to-slate-800 border border-amber-200/80 dark:border-slate-700 p-5 rounded-2xl shadow-sm relative overflow-hidden">
+                        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <div class="inline-flex items-center space-x-2 px-2.5 py-1 rounded-md bg-amber-200/70 dark:bg-amber-500/20 text-amber-900 dark:text-amber-300 text-xs font-semibold mb-2">
+                                    <i class="fa-solid fa-quote-left text-amber-600"></i>
+                                    <span>Động lực mỗi ngày</span>
+                                </div>
+                                <p id="daily-quote" class="text-base md:text-lg font-semibold text-slate-800 dark:text-slate-100 italic">
+                                    "Hành trình ngàn dặm luôn bắt đầu bằng một bước chân nhỏ."
+                                </p>
+                            </div>
+
+                            <!-- Mood Widget -->
+                            <div class="bg-white/80 dark:bg-slate-700/80 backdrop-blur border border-amber-200 dark:border-slate-600 p-3 rounded-xl flex items-center space-x-3 shrink-0">
+                                <span class="text-xs font-medium text-slate-600 dark:text-slate-300">Tâm trạng hôm nay:</span>
+                                <div class="flex items-center space-x-1.5" id="mood-picker">
+                                    <button onclick="setMood('great')" title="Tuyệt vời" class="p-1.5 rounded-lg hover:bg-amber-100 dark:hover:bg-slate-600 transition text-xl">😄</button>
+                                    <button onclick="setMood('good')" title="Tốt" class="p-1.5 rounded-lg hover:bg-amber-100 dark:hover:bg-slate-600 transition text-xl">🙂</button>
+                                    <button onclick="setMood('normal')" title="Bình thường" class="p-1.5 rounded-lg hover:bg-amber-100 dark:hover:bg-slate-600 transition text-xl">😐</button>
+                                    <button onclick="setMood('tired')" title="Mệt mỏi" class="p-1.5 rounded-lg hover:bg-amber-100 dark:hover:bg-slate-600 transition text-xl">😫</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KHU VỰC 1: TỔNG QUAN HÔM NAY -->
+                    <div>
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 flex items-center space-x-2">
+                            <i class="fa-solid fa-chart-simple text-amber-500"></i>
+                            <span>Tổng quan chỉ số hôm nay</span>
+                        </h3>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+                            <!-- Card 1: Tổng số việc -->
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm flex flex-col justify-between">
+                                <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                                    <span class="text-xs font-medium">Tổng việc hôm nay</span>
+                                    <div class="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 flex items-center justify-center">
+                                        <i class="fa-solid fa-list-check"></i>
+                                    </div>
+                                </div>
+                                <div id="dash-total-tasks" class="text-2xl font-bold text-slate-800 dark:text-white">0</div>
+                            </div>
+
+                            <!-- Card 2: Đã hoàn thành -->
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-emerald-200/60 dark:border-slate-700 shadow-sm flex flex-col justify-between">
+                                <div class="flex items-center justify-between text-emerald-600 dark:text-emerald-400 mb-2">
+                                    <span class="text-xs font-medium">Đã hoàn thành</span>
+                                    <div class="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                    </div>
+                                </div>
+                                <div id="dash-completed-tasks" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">0</div>
+                            </div>
+
+                            <!-- Card 3: Quá hạn -->
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-rose-200/60 dark:border-slate-700 shadow-sm flex flex-col justify-between">
+                                <div class="flex items-center justify-between text-rose-600 dark:text-rose-400 mb-2">
+                                    <span class="text-xs font-medium">Đang trễ (Quá hạn)</span>
+                                    <div class="w-8 h-8 rounded-xl bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                    </div>
+                                </div>
+                                <div id="dash-overdue-tasks" class="text-2xl font-bold text-rose-600 dark:text-rose-400">0</div>
+                            </div>
+
+                            <!-- Card 4: Tỷ lệ hoàn thành -->
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm flex flex-col justify-between">
+                                <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                                    <span class="text-xs font-medium">Tỷ lệ hoàn thành</span>
+                                    <div class="w-8 h-8 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                                        <i class="fa-solid fa-chart-line"></i>
+                                    </div>
+                                </div>
+                                <div id="dash-completion-rate" class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">0%</div>
+                            </div>
+
+                            <!-- Card 5: Lượng nước đã uống -->
+                            <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-blue-200/60 dark:border-slate-700 shadow-sm flex flex-col justify-between col-span-2 sm:col-span-1">
+                                <div class="flex items-center justify-between text-blue-600 dark:text-blue-400 mb-2">
+                                    <span class="text-xs font-medium">Nước đã uống</span>
+                                    <div class="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                                        <i class="fa-solid fa-glass-water"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span id="dash-water-intake" class="text-2xl font-bold text-blue-600 dark:text-blue-400">0</span>
+                                    <span class="text-xs text-slate-500 dark:text-slate-400 font-normal"> / <span id="dash-water-goal">2000</span>ml</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TIMELINE CÔNG VIỆC HÔM NAY -->
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700 p-5 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-base font-bold text-slate-800 dark:text-white flex items-center space-x-2">
+                                <i class="fa-regular fa-clock text-amber-500"></i>
+                                <span>Timeline Công việc hôm nay</span>
+                            </h3>
+                            <span class="text-xs text-slate-500 dark:text-slate-400 font-medium bg-slate-100 dark:bg-slate-700 px-2.5 py-1 rounded-lg">
+                                <i class="fa-solid fa-rotate text-amber-500 mr-1"></i>Tự động cập nhật
+                            </span>
+                        </div>
+
+                        <div id="dash-timeline-list" class="space-y-3 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-700">
+                            <!-- Items injected dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- TỔNG KẾT NHANH -->
+                    <div class="bg-amber-50/60 dark:bg-slate-800/80 border border-amber-200/70 dark:border-slate-700 p-5 rounded-2xl shadow-sm">
+                        <h3 class="text-base font-bold text-amber-900 dark:text-amber-300 mb-3 flex items-center space-x-2">
+                            <i class="fa-solid fa-clipboard-check text-amber-600"></i>
+                            <span>Tổng kết nhanh hôm nay</span>
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div class="bg-white dark:bg-slate-700/60 p-3.5 rounded-xl border border-amber-100 dark:border-slate-600">
+                                <span class="text-slate-500 dark:text-slate-400 block text-xs">Tiến độ hôm nay:</span>
+                                <span id="summary-progress-text" class="font-bold text-slate-800 dark:text-white text-base">0/0 việc hoàn thành</span>
+                            </div>
+                            <div class="bg-white dark:bg-slate-700/60 p-3.5 rounded-xl border border-amber-100 dark:border-slate-600">
+                                <span class="text-slate-500 dark:text-slate-400 block text-xs">Việc đang trễ (quá hạn):</span>
+                                <span id="summary-remaining-text" class="font-bold text-rose-600 dark:text-rose-400 text-base">0 công việc</span>
+                            </div>
+                            <div class="bg-white dark:bg-slate-700/60 p-3.5 rounded-xl border border-amber-100 dark:border-slate-600">
+                                <span class="text-slate-500 dark:text-slate-400 block text-xs">Tình trạng:</span>
+                                <span id="summary-action-text" class="font-bold text-amber-700 dark:text-amber-400 text-base">Tốt</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ================= TAB 2: DANH SÁCH CÔNG VIỆC ================= -->
+                <div id="tab-tasks" class="tab-content space-y-6 hidden">
+                    
+                    <!-- Header Action Bar -->
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-800 dark:text-white">Quản lý Công việc</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Xem danh sách, phân loại nhóm và tích hoàn thành công việc (Đồng bộ đa thiết bị)</p>
+                        </div>
+                        <button onclick="openTaskModal()" class="inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-500 text-amber-950 font-semibold text-sm transition shadow-sm">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Thêm công việc mới</span>
+                        </button>
+                    </div>
+
+                    <!-- Dynamic Date Filter Tabs with Real-time Count Badges -->
+                    <div class="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none" id="task-filter-tabs">
+                        <button onclick="setTaskFilter('overdue')" id="filter-btn-overdue" class="filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-amber-400 text-amber-950 shadow-sm">
+                            ⚠️ Đang trễ <span id="badge-overdue" class="ml-1 px-1.5 py-0.5 rounded-full bg-white/40 text-[10px]">0</span>
+                        </button>
+                        <button onclick="setTaskFilter('today')" id="filter-btn-today" class="filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                            Hôm nay <span id="label-date-today" class="text-[10px] opacity-75"></span> <span id="badge-today" class="ml-1 px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-[10px]">0</span>
+                        </button>
+                        <button onclick="setTaskFilter('tomorrow')" id="filter-btn-tomorrow" class="filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                            Ngày mai <span id="label-date-tomorrow" class="text-[10px] opacity-75"></span> <span id="badge-tomorrow" class="ml-1 px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-[10px]">0</span>
+                        </button>
+                        <button onclick="setTaskFilter('afterTomorrow')" id="filter-btn-afterTomorrow" class="filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                            Ngày kia <span id="label-date-afterTomorrow" class="text-[10px] opacity-75"></span> <span id="badge-afterTomorrow" class="ml-1 px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-[10px]">0</span>
+                        </button>
+                        <button onclick="setTaskFilter('next7days')" id="filter-btn-next7days" class="filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                            Trong 7 ngày tới <span id="label-date-next7days" class="text-[10px] opacity-75"></span> <span id="badge-next7days" class="ml-1 px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-[10px]">0</span>
+                        </button>
+                        <button onclick="setTaskFilter('nextMonth')" id="filter-btn-nextMonth" class="filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                            Trong tháng tới <span id="label-date-nextMonth" class="text-[10px] opacity-75"></span> <span id="badge-nextMonth" class="ml-1 px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-[10px]">0</span>
+                        </button>
+                        <button onclick="setTaskFilter('completed')" id="filter-btn-completed" class="filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                            ✅ Đã hoàn thành <span id="badge-completed" class="ml-1 px-1.5 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-[10px]">0</span>
+                        </button>
+                    </div>
+
+                    <!-- Tasks Table -->
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase border-b border-slate-200/80 dark:border-slate-700">
+                                    <tr>
+                                        <th class="py-3.5 px-4">Tên công việc</th>
+                                        <th class="py-3.5 px-4">Nhóm</th>
+                                        <th class="py-3.5 px-4">Ưu tiên</th>
+                                        <th class="py-3.5 px-4">Trạng thái (Done)</th>
+                                        <th class="py-3.5 px-4">Ghi chú</th>
+                                        <th class="py-3.5 px-4 text-right">Thao tác</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tasks-table-body" class="divide-y divide-slate-100 dark:divide-slate-700/60">
+                                    <!-- Rows injected dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ================= TAB 3: CHĂM SÓC SỨC KHỎE ================= -->
+                <div id="tab-health" class="tab-content space-y-6 hidden">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                        <!-- WATER TRACKER -->
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700 p-5 shadow-sm space-y-4">
+                            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center text-lg">
+                                        <i class="fa-solid fa-droplet"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-bold text-slate-800 dark:text-white">Theo dõi Uống nước</h3>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400">Ghi nhận chính xác từ 0ml hôm nay</p>
+                                    </div>
+                                </div>
+                                <button onclick="setWaterGoalPrompt()" class="text-xs font-semibold text-blue-600 hover:underline bg-blue-50 dark:bg-slate-700 px-2.5 py-1 rounded-lg">
+                                    <i class="fa-solid fa-pen-to-square mr-1"></i>Mục tiêu: <span id="health-goal-display">2000</span>ml
+                                </button>
+                            </div>
+
+                            <!-- Progress Display -->
+                            <div class="text-center py-4 bg-blue-50/50 dark:bg-slate-700/40 rounded-xl border border-blue-100 dark:border-slate-600">
+                                <div id="health-water-current" class="text-3xl font-extrabold text-blue-600 dark:text-blue-400">0 ml</div>
+                                <div id="health-water-percent" class="text-xs font-medium text-slate-500 dark:text-slate-400 mt-1">0% mục tiêu ngày</div>
+                                
+                                <div class="w-full bg-slate-200 dark:bg-slate-600 h-2.5 rounded-full mt-3 overflow-hidden max-w-xs mx-auto">
+                                    <div id="health-water-bar" class="bg-blue-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Quick Add Cups -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-2">Thêm cốc nước đã uống (Tùy chọn ml):</label>
+                                <div class="grid grid-cols-4 gap-2">
+                                    <button onclick="addWater(150)" class="py-2.5 px-2 bg-blue-50 hover:bg-blue-100 dark:bg-slate-700 dark:hover:bg-slate-600 border border-blue-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-blue-700 dark:text-blue-300 flex flex-col items-center space-y-1 transition">
+                                        <i class="fa-solid fa-wine-glass"></i>
+                                        <span>+150ml</span>
+                                    </button>
+                                    <button onclick="addWater(200)" class="py-2.5 px-2 bg-blue-50 hover:bg-blue-100 dark:bg-slate-700 dark:hover:bg-slate-600 border border-blue-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-blue-700 dark:text-blue-300 flex flex-col items-center space-y-1 transition">
+                                        <i class="fa-solid fa-glass-water"></i>
+                                        <span>+200ml</span>
+                                    </button>
+                                    <button onclick="addWater(250)" class="py-2.5 px-2 bg-blue-50 hover:bg-blue-100 dark:bg-slate-700 dark:hover:bg-slate-600 border border-blue-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-blue-700 dark:text-blue-300 flex flex-col items-center space-y-1 transition">
+                                        <i class="fa-solid fa-mug-hot"></i>
+                                        <span>+250ml</span>
+                                    </button>
+                                    <button onclick="addWater(500)" class="py-2.5 px-2 bg-blue-50 hover:bg-blue-100 dark:bg-slate-700 dark:hover:bg-slate-600 border border-blue-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-blue-700 dark:text-blue-300 flex flex-col items-center space-y-1 transition">
+                                        <i class="fa-solid fa-bottle-water"></i>
+                                        <span>+500ml</span>
+                                    </button>
+                                </div>
+                                <button onclick="resetWater()" class="w-full mt-3 py-1.5 text-xs text-rose-500 hover:text-rose-700 transition text-center">
+                                    <i class="fa-solid fa-rotate-right mr-1"></i>Đặt lại lượng nước hôm nay về 0ml
+                                </button>
+                            </div>
+
+                            <!-- Reminder config -->
+                            <div class="bg-slate-50 dark:bg-slate-700/30 p-3 rounded-xl border border-slate-200/60 dark:border-slate-700 flex items-center justify-between text-xs">
+                                <span class="text-slate-600 dark:text-slate-300 font-medium">Nhắc uống nước tự động trên thiết bị</span>
+                                <span id="water-notif-badge" class="px-2 py-1 bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300 font-bold rounded">Đang bật</span>
+                            </div>
+                        </div>
+
+                        <!-- SLEEP TRACKER -->
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700 p-5 shadow-sm space-y-4">
+                            <div class="flex items-center space-x-3 border-b border-slate-100 dark:border-slate-700 pb-3">
+                                <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-moon"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-slate-800 dark:text-white">Giấc ngủ & Lịch nghỉ ngơi</h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">Đặt giờ đi ngủ chuẩn (Đồng bộ nhắc giờ)</p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Mục tiêu giờ đi ngủ trong ngày:</label>
+                                    <input type="time" id="sleep-target-time" value="22:30" onchange="updateSleepGoal()" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+                                </div>
+
+                                <div class="p-4 bg-indigo-50/60 dark:bg-slate-700/40 rounded-xl border border-indigo-100 dark:border-slate-600 space-y-2">
+                                    <div class="flex items-center justify-between text-xs">
+                                        <span class="text-slate-600 dark:text-slate-300">Thời lượng ngủ khuyến nghị:</span>
+                                        <span class="font-bold text-indigo-700 dark:text-indigo-300">7 - 8 tiếng / ngày</span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-xs">
+                                        <span class="text-slate-600 dark:text-slate-300">Thông báo nhắc giờ ngủ:</span>
+                                        <span class="font-semibold text-emerald-600 dark:text-emerald-400">Nhắc trước 30 phút</span>
+                                    </div>
+                                </div>
+
+                                <p class="text-xs text-slate-400 italic">
+                                    * Hệ thống sẽ tự động phát thông báo đẩy ra màn hình điện thoại/máy tính trước 30 phút khi đến giờ ngủ.
+                                </p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- ================= TAB 4: LỊCH SỬ & PHÂN TÍCH ================= -->
+                <div id="tab-analytics" class="tab-content space-y-6 hidden">
+                    
+                    <!-- Filters & Mode Selector -->
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-bold uppercase text-slate-400">Chế độ xem:</span>
+                            <div class="inline-flex p-1 bg-slate-100 dark:bg-slate-700 rounded-xl">
+                                <button onclick="setHistoryView('day')" id="btn-hist-day" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-sm">Ngày</button>
+                                <button onclick="setHistoryView('month')" id="btn-hist-month" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition text-slate-600 dark:text-slate-300">Tháng</button>
+                                <button onclick="setHistoryView('year')" id="btn-hist-year" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition text-slate-600 dark:text-slate-300">Năm (365 Ngày)</button>
+                            </div>
+                        </div>
+
+                        <!-- Category Group Filter -->
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs font-bold uppercase text-slate-400 shrink-0">Bộ lọc Nhóm:</span>
+                            <select id="history-group-filter" onchange="renderHistoryView()" class="px-3 py-1.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-400">
+                                <option value="ALL">Tất cả các nhóm</option>
+                                <option value="Freelancer">💻 Freelancer</option>
+                                <option value="Full-time">💼 Công việc Full-time</option>
+                                <option value="Business">📈 Kinh doanh</option>
+                                <option value="Shopping">🛒 Mua sắm</option>
+                                <option value="Living">🏡 Sinh hoạt</option>
+                                <option value="Finance">💰 Tài chính cá nhân</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- SUB-VIEW 1: HISTORICAL DAY VIEW -->
+                    <div id="history-sub-day" class="space-y-4">
+                        <div class="flex items-center space-x-3 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm">
+                            <label class="text-xs font-semibold text-slate-600 dark:text-slate-300">Chọn ngày truy xuất:</label>
+                            <input type="date" id="history-date-picker" onchange="renderHistoryDay()" class="px-3 py-1.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-medium">
+                        </div>
+
+                        <div id="history-day-content" class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm space-y-4">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- SUB-VIEW 2: HISTORICAL MONTH VIEW -->
+                    <div id="history-sub-month" class="hidden space-y-4">
+                        <div class="flex items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm">
+                            <h4 id="month-calendar-title" class="font-bold text-slate-800 dark:text-white">Tháng 10, 2026</h4>
+                            <div class="flex space-x-2">
+                                <button onclick="changeMonth(-1)" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-xs"><i class="fa-solid fa-chevron-left"></i></button>
+                                <button onclick="changeMonth(1)" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-xs"><i class="fa-solid fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Calendar Grid -->
+                        <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm overflow-x-auto">
+                            <div class="grid grid-cols-7 gap-2 min-w-[700px] text-center text-xs font-bold text-slate-400 mb-2">
+                                <div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div><div>CN</div>
+                            </div>
+                            <div id="month-calendar-grid" class="grid grid-cols-7 gap-2 min-w-[700px]">
+                                <!-- Cells injected dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SUB-VIEW 3: HISTORICAL YEAR VIEW -->
+                    <div id="history-sub-year" class="hidden space-y-4">
+                        <div class="flex items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm">
+                            <h4 id="year-title" class="font-bold text-slate-800 dark:text-white">Yearly Activity Heatmap (2026)</h4>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="changeYear(-1)" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 rounded-xl text-xs font-semibold"><i class="fa-solid fa-chevron-left mr-1"></i>Năm trước</button>
+                                <span id="current-year-display" class="font-bold text-sm px-2">2026</span>
+                                <button onclick="changeYear(1)" class="px-3 py-1.5 bg-slate-100 dark:bg-slate-700 rounded-xl text-xs font-semibold">Năm sau<i class="fa-solid fa-chevron-right ml-1"></i></button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm overflow-x-auto">
+                            <div id="yearly-heatmap-grid" class="flex flex-wrap gap-1.5 min-w-[750px] justify-start">
+                                <!-- 365 boxes injected -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ACTIVITY LOG SECTION -->
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700 p-5 shadow-sm space-y-3">
+                        <h4 class="font-bold text-slate-800 dark:text-white text-sm flex items-center space-x-2">
+                            <i class="fa-solid fa-list-ol text-amber-500"></i>
+                            <span>Activity Log (Nhật ký hệ thống)</span>
+                        </h4>
+                        <div id="activity-log-container" class="space-y-2 max-h-60 overflow-y-auto pr-1 text-xs divide-y divide-slate-100 dark:divide-slate-700/50">
+                            <!-- Logs injected -->
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </main>
+
+        <!-- BOTTOM MOBILE NAVIGATION -->
+        <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 z-30 flex items-center justify-around py-2 px-1">
+            <button onclick="switchTab('dashboard')" id="mobile-nav-dashboard" class="mobile-nav-btn flex flex-col items-center space-y-1 text-amber-600 dark:text-amber-400 p-1">
+                <i class="fa-solid fa-chart-pie text-lg"></i>
+                <span class="text-[10px] font-medium">Dashboard</span>
+            </button>
+            <button onclick="switchTab('tasks')" id="mobile-nav-tasks" class="mobile-nav-btn flex flex-col items-center space-y-1 text-slate-400 p-1">
+                <i class="fa-solid fa-list-check text-lg"></i>
+                <span class="text-[10px] font-medium">Công việc</span>
+            </button>
+            <button onclick="switchTab('health')" id="mobile-nav-health" class="mobile-nav-btn flex flex-col items-center space-y-1 text-slate-400 p-1">
+                <i class="fa-solid fa-heart-pulse text-lg"></i>
+                <span class="text-[10px] font-medium">Sức khỏe</span>
+            </button>
+            <button onclick="switchTab('analytics')" id="mobile-nav-analytics" class="mobile-nav-btn flex flex-col items-center space-y-1 text-slate-400 p-1">
+                <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+                <span class="text-[10px] font-medium">Lịch sử</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <!-- MODAL: ADD / EDIT TASK -->
+    <div id="task-modal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 max-w-md w-full p-6 shadow-xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-3">
+                <h3 id="modal-title" class="font-bold text-slate-800 dark:text-white">Thêm công việc mới</h3>
+                <button onclick="closeTaskModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form id="task-form" onsubmit="handleSaveTask(event)" class="space-y-3">
+                <input type="hidden" id="task-id">
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Tên công việc *</label>
+                    <input type="text" id="task-title" required placeholder="Ví dụ: Thiết kế Banner khuyến mãi..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Nhóm công việc</label>
+                        <select id="task-group" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+                            <option value="Freelancer">💻 Freelancer</option>
+                            <option value="Full-time">💼 Công việc Full-time</option>
+                            <option value="Business">📈 Kinh doanh</option>
+                            <option value="Shopping">🛒 Mua sắm</option>
+                            <option value="Living">🏡 Sinh hoạt</option>
+                            <option value="Finance">💰 Tài chính cá nhân</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Mức ưu tiên</label>
+                        <select id="task-priority" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+                            <option value="Cao">🔴 Cao</option>
+                            <option value="Trung bình" selected>🟡 Trung bình</option>
+                            <option value="Thấp">🟢 Thấp</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Ngày thực hiện</label>
+                        <input type="date" id="task-date" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Giờ thực hiện</label>
+                        <input type="time" id="task-time" value="09:00" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Ghi chú thêm</label>
+                    <textarea id="task-notes" rows="2" placeholder="Nội dung chi tiết hoặc yêu cầu..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"></textarea>
+                </div>
+
+                <div class="flex justify-end space-x-2 pt-2 border-t border-slate-100 dark:border-slate-700">
+                    <button type="button" onclick="closeTaskModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">Hủy</button>
+                    <button type="submit" class="px-4 py-2 rounded-xl text-xs font-semibold bg-amber-400 hover:bg-amber-500 text-amber-950 shadow-sm">Lưu công việc</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- FIREBASE REALTIME & APP SCRIPT -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'thu-trang-work-app';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "demo",
+            projectId: "demo",
+            appId: "demo"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let user = null;
+
+        // Global Dynamic State
+        window.state = {
+            tasks: JSON.parse(localStorage.getItem('tt_tasks_fallback') || '[]'),
+            health: JSON.parse(localStorage.getItem('tt_health_fallback') || '{"waterGoal":2000,"waterCurrent":0,"sleepGoalTime":"22:30","todayMood":"great"}'),
+            activityLogs: JSON.parse(localStorage.getItem('tt_logs_fallback') || '[]'),
+            activeFilterTab: 'overdue',
+            historyView: 'day',
+            selectedHistoryDate: new Date().toISOString().split('T')[0],
+            selectedMonth: new Date().getMonth(),
+            selectedYear: new Date().getFullYear()
+        };
+
+        async function initAuthAndSync() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    const cred = await signInWithCustomToken(auth, __initial_auth_token);
+                    user = cred.user;
+                } else {
+                    const cred = await signInAnonymously(auth);
+                    user = cred.user;
+                }
+            } catch (err) {
+                console.warn("Auth warning (using local mode if offline):", err);
+            }
+
+            onAuthStateChanged(auth, (u) => {
+                user = u;
+                const syncText = document.getElementById('sync-text');
+                if (user) {
+                    if (syncText) syncText.textContent = 'Đã kết nối';
+                    subscribeRealtimeData();
+                } else {
+                    if (syncText) syncText.textContent = 'Chế độ ngoại tuyến';
+                }
+            });
+
+            // Trigger initial render with local fallback data
+            renderAll();
+        }
+
+        function getTasksCollection() {
+            return collection(db, 'artifacts', appId, 'public', 'data', 'tasks');
+        }
+
+        function getHealthDoc() {
+            return doc(db, 'artifacts', appId, 'public', 'data', 'health', 'daily_health');
+        }
+
+        function getLogsCollection() {
+            return collection(db, 'artifacts', appId, 'public', 'data', 'activity_logs');
+        }
+
+        function subscribeRealtimeData() {
+            if (!user) return;
+
+            // Tasks collection Realtime Sync
+            onSnapshot(getTasksCollection(), (snapshot) => {
+                if (!snapshot.empty) {
+                    window.state.tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    localStorage.setItem('tt_tasks_fallback', JSON.stringify(window.state.tasks));
+                    renderAll();
+                }
+            }, (err) => console.error("Tasks sync error:", err));
+
+            // Health Document Sync
+            onSnapshot(getHealthDoc(), (docSnap) => {
+                if (docSnap.exists()) {
+                    window.state.health = docSnap.data();
+                    localStorage.setItem('tt_health_fallback', JSON.stringify(window.state.health));
+                    renderAll();
+                }
+            }, (err) => console.error("Health sync error:", err));
+
+            // Activity logs sync
+            onSnapshot(getLogsCollection(), (snapshot) => {
+                if (!snapshot.empty) {
+                    window.state.activityLogs = snapshot.docs
+                        .map(doc => ({ id: doc.id, ...doc.data() }))
+                        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    localStorage.setItem('tt_logs_fallback', JSON.stringify(window.state.activityLogs));
+                    renderActivityLogs();
+                }
+            }, (err) => console.error("Logs sync error:", err));
+        }
+
+        window.saveTaskToCloud = async function(taskData) {
+            const docId = taskData.id || ('task_' + Date.now());
+            const updatedTask = { ...taskData, id: docId, userId: user ? user.uid : 'anonymous' };
+
+            // Update local state & fallback immediately
+            const index = window.state.tasks.findIndex(t => t.id === docId);
+            if (index >= 0) {
+                window.state.tasks[index] = updatedTask;
+            } else {
+                window.state.tasks.push(updatedTask);
+            }
+            localStorage.setItem('tt_tasks_fallback', JSON.stringify(window.state.tasks));
+            renderAll();
+
+            // Sync to Firebase if connected
+            try {
+                if (user) {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'tasks', docId);
+                    await setDoc(docRef, updatedTask);
+                }
+            } catch (err) {
+                console.error("Cloud save failed, saved locally:", err);
+            }
+        };
+
+        window.deleteTaskFromCloud = async function(id) {
+            window.state.tasks = window.state.tasks.filter(t => t.id !== id);
+            localStorage.setItem('tt_tasks_fallback', JSON.stringify(window.state.tasks));
+            renderAll();
+
+            try {
+                if (user) {
+                    const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'tasks', id);
+                    await deleteDoc(docRef);
+                }
+            } catch (err) {
+                console.error("Cloud delete failed, deleted locally:", err);
+            }
+        };
+
+        window.saveHealthToCloud = async function(healthData) {
+            localStorage.setItem('tt_health_fallback', JSON.stringify(healthData));
+            renderHealthTracker();
+            renderDashboard();
+
+            try {
+                if (user) {
+                    await setDoc(getHealthDoc(), { ...healthData, userId: user.uid });
+                }
+            } catch (err) {
+                console.error("Health cloud save error:", err);
+            }
+        };
+
+        window.logActivityToCloud = async function(type, text) {
+            const logObj = {
+                type,
+                text,
+                timestamp: new Date().toISOString(),
+                userId: user ? user.uid : 'anonymous'
+            };
+
+            window.state.activityLogs.unshift(logObj);
+            localStorage.setItem('tt_logs_fallback', JSON.stringify(window.state.activityLogs));
+            renderActivityLogs();
+
+            try {
+                if (user) {
+                    const logId = 'log_' + Date.now();
+                    const logRef = doc(db, 'artifacts', appId, 'public', 'data', 'activity_logs', logId);
+                    await setDoc(logRef, logObj);
+                }
+            } catch (err) {
+                console.error("Log error:", err);
+            }
+        };
+
+        window.addEventListener('load', () => {
+            initAuthAndSync();
+            setupHeaderDates();
+            setRandomQuote();
+        });
+    </script>
+
+    <script>
+        const GROUPS = {
+            'Freelancer': { name: 'Freelancer', icon: 'fa-solid fa-laptop-code', color: 'text-purple-600 bg-purple-50 dark:bg-purple-900/30' },
+            'Full-time': { name: 'Công việc Full-time', icon: 'fa-solid fa-briefcase', color: 'text-blue-600 bg-blue-50 dark:bg-blue-900/30' },
+            'Business': { name: 'Kinh doanh', icon: 'fa-solid fa-chart-line', color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30' },
+            'Shopping': { name: 'Mua sắm', icon: 'fa-solid fa-cart-shopping', color: 'text-amber-600 bg-amber-50 dark:bg-amber-900/30' },
+            'Living': { name: 'Sinh hoạt', icon: 'fa-solid fa-house', color: 'text-orange-600 bg-orange-50 dark:bg-orange-900/30' },
+            'Finance': { name: 'Tài chính cá nhân', icon: 'fa-solid fa-wallet', color: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' }
+        };
+
+        function getTodayStr() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function getDateOffsetStr(daysOffset) {
+            const d = new Date();
+            d.setDate(d.getDate() + daysOffset);
+            return d.toISOString().split('T')[0];
+        }
+
+        function formatDateShort(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                return `(${parts[2]}/${parts[1]})`;
+            }
+            return '';
+        }
+
+        function formatDateVN(dateObj) {
+            const d = new Date(dateObj);
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function setupHeaderDates() {
+            const dateElem = document.getElementById('header-date');
+            const lunarElem = document.getElementById('header-lunar');
+            if (dateElem) dateElem.textContent = formatDateVN(new Date());
+            if (lunarElem) lunarElem.textContent = `Âm lịch: 18/09`;
+        }
+
+        function setRandomQuote() {
+            const quotes = [
+                "Hành trình ngàn dặm luôn bắt đầu bằng một bước chân nhỏ.",
+                "Thành công là tổng hợp của những nỗ lực nhỏ được lặp đi lặp lại mỗi ngày.",
+                "Kỷ luật là cầu nối giữa mục tiêu và thành tựu.",
+                "Tập trung vào sự tiến bộ, không phải sự hoàn hảo."
+            ];
+            const elem = document.getElementById('daily-quote');
+            if (elem) elem.textContent = `"${quotes[Math.floor(Math.random() * quotes.length)]}"`;
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            const target = document.getElementById(`tab-${tabId}`);
+            if (target) target.classList.remove('hidden');
+
+            const pageTitle = document.getElementById('page-title');
+            const titles = {
+                'dashboard': 'Dashboard Today',
+                'tasks': 'Danh sách Công việc',
+                'health': 'Chăm sóc Sức khỏe',
+                'analytics': 'Lịch sử & Phân tích'
+            };
+            if (pageTitle) pageTitle.textContent = titles[tabId] || 'Dashboard';
+
+            // Desktop Nav Highlight
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.className = 'nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-150 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700/50';
+            });
+            const activeDesktop = document.getElementById(`nav-${tabId}`);
+            if (activeDesktop) {
+                activeDesktop.className = 'nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition-all duration-150 bg-amber-100 text-amber-900 dark:bg-amber-500/20 dark:text-amber-300';
+            }
+
+            // Mobile Nav Highlight
+            document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+                btn.className = 'mobile-nav-btn flex flex-col items-center space-y-1 text-slate-400 p-1';
+            });
+            const activeMobile = document.getElementById(`mobile-nav-${tabId}`);
+            if (activeMobile) {
+                activeMobile.className = 'mobile-nav-btn flex flex-col items-center space-y-1 text-amber-600 dark:text-amber-400 p-1';
+            }
+        }
+
+        function renderAll() {
+            renderDashboard();
+            renderTasksTable();
+            renderHealthTracker();
+            renderHistoryView();
+        }
+
+        function renderDashboard() {
+            const today = getTodayStr();
+            const todayTasks = state.tasks.filter(t => t.date === today);
+            const completed = todayTasks.filter(t => t.completed);
+            const overdue = state.tasks.filter(t => t.date < today && !t.completed);
+
+            document.getElementById('dash-total-tasks').textContent = todayTasks.length;
+            document.getElementById('dash-completed-tasks').textContent = completed.length;
+            document.getElementById('dash-overdue-tasks').textContent = overdue.length;
+            
+            const rate = todayTasks.length ? Math.round((completed.length / todayTasks.length) * 100) : 0;
+            document.getElementById('dash-completion-rate').textContent = `${rate}%`;
+
+            document.getElementById('dash-water-intake').textContent = state.health.waterCurrent || 0;
+            document.getElementById('dash-water-goal').textContent = state.health.waterGoal || 2000;
+
+            // Timeline List
+            const timelineList = document.getElementById('dash-timeline-list');
+            if (timelineList) {
+                if (todayTasks.length === 0) {
+                    timelineList.innerHTML = `<p class="text-xs text-slate-400 py-2 pl-6">Chưa có công việc nào được lên lịch cho hôm nay.</p>`;
+                } else {
+                    timelineList.innerHTML = todayTasks.sort((a,b) => (a.time || '').localeCompare(b.time || '')).map(t => `
+                        <div class="relative pl-7 flex items-center justify-between group">
+                            <div class="absolute left-2 w-3 h-3 rounded-full ${t.completed ? 'bg-emerald-500' : 'bg-amber-400'} border-2 border-white dark:border-slate-800"></div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-500 dark:text-slate-400 mr-2">${t.time || '00:00'}</span>
+                                <span class="text-sm font-semibold ${t.completed ? 'line-through text-slate-400' : 'text-slate-800 dark:text-white'}">${t.title}</span>
+                            </div>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded ${t.completed ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}">
+                                ${t.completed ? 'Đã xong' : 'Chưa làm'}
+                            </span>
+                        </div>
+                    `).join('');
+                }
+            }
+
+            document.getElementById('summary-progress-text').textContent = `${completed.length}/${todayTasks.length} việc hoàn thành`;
+            document.getElementById('summary-remaining-text').textContent = `${overdue.length} công việc`;
+            document.getElementById('summary-action-text').textContent = overdue.length > 0 ? 'Cần xử lý việc trễ' : 'Tiến độ rất tốt';
+        }
+
+        function setTaskFilter(filter) {
+            state.activeFilterTab = filter;
+            renderTasksTable();
+        }
+
+        function renderTasksTable() {
+            const body = document.getElementById('tasks-table-body');
+            if (!body) return;
+
+            const today = getTodayStr();
+            const tomorrow = getDateOffsetStr(1);
+            const afterTomorrow = getDateOffsetStr(2);
+            const next7DaysEnd = getDateOffsetStr(7);
+
+            // Calculation for Next Month range
+            const now = new Date();
+            const startNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString().split('T')[0];
+            const endNextMonth = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString().split('T')[0];
+
+            // Set labels with dynamic dates
+            document.getElementById('label-date-today').textContent = formatDateShort(today);
+            document.getElementById('label-date-tomorrow').textContent = formatDateShort(tomorrow);
+            document.getElementById('label-date-afterTomorrow').textContent = formatDateShort(afterTomorrow);
+            document.getElementById('label-date-next7days').textContent = `${formatDateShort(today)}-${formatDateShort(next7DaysEnd)}`;
+            document.getElementById('label-date-nextMonth').textContent = `(T${now.getMonth() + 2})`;
+
+            // Filter UNCOMPLETED tasks for dynamic badge counting
+            const pendingTasks = state.tasks.filter(t => !t.completed);
+
+            const overdueCount = pendingTasks.filter(t => t.date < today).length;
+            const todayCount = pendingTasks.filter(t => t.date === today).length;
+            const tomorrowCount = pendingTasks.filter(t => t.date === tomorrow).length;
+            const afterTomorrowCount = pendingTasks.filter(t => t.date === afterTomorrow).length;
+            const next7daysCount = pendingTasks.filter(t => t.date >= today && t.date <= next7DaysEnd).length;
+            const nextMonthCount = pendingTasks.filter(t => t.date >= startNextMonth && t.date <= endNextMonth).length;
+            const completedCount = state.tasks.filter(t => t.completed).length;
+
+            document.getElementById('badge-overdue').textContent = overdueCount;
+            document.getElementById('badge-today').textContent = todayCount;
+            document.getElementById('badge-tomorrow').textContent = tomorrowCount;
+            document.getElementById('badge-afterTomorrow').textContent = afterTomorrowCount;
+            document.getElementById('badge-next7days').textContent = next7daysCount;
+            document.getElementById('badge-nextMonth').textContent = nextMonthCount;
+            document.getElementById('badge-completed').textContent = completedCount;
+
+            // Highlight buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.className = 'filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300';
+            });
+            const activeBtn = document.getElementById(`filter-btn-${state.activeFilterTab}`);
+            if (activeBtn) {
+                activeBtn.className = 'filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap bg-amber-400 text-amber-950 shadow-sm';
+            }
+
+            let filtered = [];
+            switch (state.activeFilterTab) {
+                case 'overdue':
+                    filtered = state.tasks.filter(t => t.date < today && !t.completed);
+                    break;
+                case 'today':
+                    filtered = state.tasks.filter(t => t.date === today);
+                    break;
+                case 'tomorrow':
+                    filtered = state.tasks.filter(t => t.date === tomorrow);
+                    break;
+                case 'afterTomorrow':
+                    filtered = state.tasks.filter(t => t.date === afterTomorrow);
+                    break;
+                case 'next7days':
+                    filtered = state.tasks.filter(t => t.date >= today && t.date <= next7DaysEnd);
+                    break;
+                case 'nextMonth':
+                    filtered = state.tasks.filter(t => t.date >= startNextMonth && t.date <= endNextMonth);
+                    break;
+                case 'completed':
+                    filtered = state.tasks.filter(t => t.completed);
+                    break;
+                default:
+                    filtered = state.tasks;
+            }
+
+            if (filtered.length === 0) {
+                body.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400 text-xs">Không có công việc nào thuộc danh mục này.</td></tr>`;
+                return;
+            }
+
+            body.innerHTML = filtered.map(t => `
+                <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition">
+                    <td class="py-3 px-4 font-semibold text-slate-800 dark:text-white">
+                        ${t.title}
+                        <div class="text-[10px] text-slate-400 font-normal">${t.date} | ${t.time || '00:00'}</div>
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="px-2.5 py-1 rounded-lg text-xs font-medium ${GROUPS[t.group]?.color || 'bg-slate-100'}">
+                            ${t.group}
+                        </span>
+                    </td>
+                    <td class="py-3 px-4 text-xs font-bold">${t.priority}</td>
+                    <td class="py-3 px-4">
+                        <button onclick="toggleTaskStatus('${t.id}')" class="px-3 py-1 rounded-xl text-xs font-bold transition ${t.completed ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}">
+                            <i class="fa-solid ${t.completed ? 'fa-check-circle' : 'fa-circle'} mr-1"></i>
+                            ${t.completed ? 'Đã hoàn thành' : 'Đang chờ'}
+                        </button>
+                    </td>
+                    <td class="py-3 px-4 text-xs text-slate-500">${t.notes || '-'}</td>
+                    <td class="py-3 px-4 text-right space-x-2">
+                        <button onclick="editTask('${t.id}')" class="text-amber-600 hover:text-amber-800 text-xs font-semibold p-1">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button onclick="deleteTask('${t.id}')" class="text-rose-500 hover:text-rose-700 text-xs font-semibold p-1">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderHealthTracker() {
+            const cur = state.health.waterCurrent || 0;
+            const goal = state.health.waterGoal || 2000;
+            const pct = Math.min(Math.round((cur / goal) * 100), 100);
+
+            document.getElementById('health-goal-display').textContent = goal;
+            document.getElementById('health-water-current').textContent = `${cur} ml`;
+            document.getElementById('health-water-percent').textContent = `${pct}% mục tiêu ngày`;
+            document.getElementById('health-water-bar').style.width = `${pct}%`;
+            document.getElementById('sleep-target-time').value = state.health.sleepGoalTime || "22:30";
+        }
+
+        async function handleSaveTask(e) {
+            e.preventDefault();
+            const id = document.getElementById('task-id').value;
+            const title = document.getElementById('task-title').value;
+            const group = document.getElementById('task-group').value;
+            const priority = document.getElementById('task-priority').value;
+            const date = document.getElementById('task-date').value;
+            const time = document.getElementById('task-time').value;
+            const notes = document.getElementById('task-notes').value;
+
+            const existingTask = state.tasks.find(t => t.id === id);
+
+            const taskData = {
+                id: id || ('task_' + Date.now()),
+                title, group, priority, date, time, notes,
+                completed: existingTask ? existingTask.completed : false
+            };
+
+            await window.saveTaskToCloud(taskData);
+            await window.logActivityToCloud('TASK_SAVED', `${id ? 'Cập nhật' : 'Tạo mới'} công việc: "${title}"`);
+            closeTaskModal();
+        }
+
+        function editTask(id) {
+            const task = state.tasks.find(t => t.id === id);
+            if (!task) return;
+
+            document.getElementById('task-id').value = task.id;
+            document.getElementById('task-title').value = task.title;
+            document.getElementById('task-group').value = task.group;
+            document.getElementById('task-priority').value = task.priority;
+            document.getElementById('task-date').value = task.date;
+            document.getElementById('task-time').value = task.time;
+            document.getElementById('task-notes').value = task.notes || '';
+            document.getElementById('modal-title').textContent = 'Chỉnh sửa công việc';
+
+            document.getElementById('task-modal').classList.remove('hidden');
+        }
+
+        async function toggleTaskStatus(id) {
+            const task = state.tasks.find(t => t.id === id);
+            if (task) {
+                task.completed = !task.completed;
+                await window.saveTaskToCloud(task);
+                await window.logActivityToCloud('TASK_STATUS', `Trạng thái công việc "${task.title}": ${task.completed ? 'Đã hoàn thành' : 'Chưa xong'}`);
+            }
+        }
+
+        async function deleteTask(id) {
+            const task = state.tasks.find(t => t.id === id);
+            await window.deleteTaskFromCloud(id);
+            if (task) {
+                await window.logActivityToCloud('TASK_DELETE', `Đã xóa công việc: "${task.title}"`);
+            }
+        }
+
+        async function addWater(amount) {
+            state.health.waterCurrent = (state.health.waterCurrent || 0) + amount;
+            await window.saveHealthToCloud(state.health);
+            await window.logActivityToCloud('HEALTH', `Đã uống thêm ${amount}ml nước`);
+        }
+
+        async function resetWater() {
+            state.health.waterCurrent = 0;
+            await window.saveHealthToCloud(state.health);
+            await window.logActivityToCloud('HEALTH', 'Đặt lại lượng nước uống về 0ml');
+        }
+
+        async function setWaterGoalPrompt() {
+            const newGoal = prompt("Nhập mục tiêu uống nước mới (ml):", state.health.waterGoal || 2000);
+            if (newGoal && !isNaN(newGoal)) {
+                state.health.waterGoal = parseInt(newGoal);
+                await window.saveHealthToCloud(state.health);
+            }
+        }
+
+        async function updateSleepGoal() {
+            const timeVal = document.getElementById('sleep-target-time').value;
+            state.health.sleepGoalTime = timeVal;
+            await window.saveHealthToCloud(state.health);
+        }
+
+        async function setMood(mood) {
+            state.health.todayMood = mood;
+            await window.saveHealthToCloud(state.health);
+        }
+
+        function openTaskModal() {
+            document.getElementById('task-form').reset();
+            document.getElementById('task-id').value = '';
+            document.getElementById('task-date').value = getTodayStr();
+            document.getElementById('modal-title').textContent = 'Thêm công việc mới';
+            document.getElementById('task-modal').classList.remove('hidden');
+        }
+
+        function closeTaskModal() {
+            document.getElementById('task-modal').classList.add('hidden');
+        }
+
+        function renderActivityLogs() {
+            const container = document.getElementById('activity-log-container');
+            if (!container) return;
+
+            if (state.activityLogs.length === 0) {
+                container.innerHTML = `<p class="text-slate-400 py-2">Chưa có nhật ký ghi nhận.</p>`;
+                return;
+            }
+
+            container.innerHTML = state.activityLogs.map(log => `
+                <div class="py-2 flex items-center justify-between">
+                    <span class="text-slate-700 dark:text-slate-300 font-medium">${log.text}</span>
+                    <span class="text-[10px] text-slate-400">${new Date(log.timestamp).toLocaleTimeString('vi-VN')}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderHistoryView() {
+            renderHistoryDay();
+            renderHistoryMonth();
+            renderHistoryYear();
+        }
+
+        function renderHistoryDay() {
+            const datePicker = document.getElementById('history-date-picker');
+            if (!datePicker) return;
+            if (!datePicker.value) datePicker.value = getTodayStr();
+
+            const selDate = datePicker.value;
+            const groupFilter = document.getElementById('history-group-filter').value;
+
+            let matchedTasks = state.tasks.filter(t => t.date === selDate);
+            if (groupFilter !== 'ALL') {
+                matchedTasks = matchedTasks.filter(t => t.group === groupFilter);
+            }
+
+            const content = document.getElementById('history-day-content');
+            if (content) {
+                if (matchedTasks.length === 0) {
+                    content.innerHTML = `<p class="text-xs text-slate-400 py-2">Không có công việc nào ghi nhận vào ngày ${selDate}.</p>`;
+                } else {
+                    content.innerHTML = matchedTasks.map(t => `
+                        <div class="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl flex items-center justify-between text-xs">
+                            <div>
+                                <span class="font-bold text-slate-800 dark:text-white mr-2">${t.time || '00:00'}</span>
+                                <span>${t.title}</span>
+                                <span class="ml-2 text-[10px] px-2 py-0.5 rounded bg-slate-200 dark:bg-slate-600">${t.group}</span>
+                            </div>
+                            <span class="font-semibold ${t.completed ? 'text-emerald-600' : 'text-amber-600'}">
+                                ${t.completed ? 'Đã xong' : 'Chưa xong'}
+                            </span>
+                        </div>
+                    `).join('');
+                }
+            }
+        }
+
+        function renderHistoryMonth() {
+            const titleElem = document.getElementById('month-calendar-title');
+            const gridElem = document.getElementById('month-calendar-grid');
+            if (!titleElem || !gridElem) return;
+
+            const monthNames = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
+            titleElem.textContent = `${monthNames[state.selectedMonth]}, ${state.selectedYear}`;
+
+            const daysInMonth = new Date(state.selectedYear, state.selectedMonth + 1, 0).getDate();
+            let html = '';
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = `${state.selectedYear}-${String(state.selectedMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const dayTasks = state.tasks.filter(t => t.date === dateStr);
+                const completedCount = dayTasks.filter(t => t.completed).length;
+
+                html += `
+                    <div class="border border-slate-100 dark:border-slate-700/60 p-2 rounded-xl text-left bg-slate-50/50 dark:bg-slate-700/30 min-h-[60px]">
+                        <span class="text-xs font-bold text-slate-700 dark:text-slate-300">${d}</span>
+                        ${dayTasks.length > 0 ? `
+                            <div class="mt-1 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                ${completedCount}/${dayTasks.length} xong
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+            gridElem.innerHTML = html;
+        }
+
+        function changeMonth(delta) {
+            state.selectedMonth += delta;
+            if (state.selectedMonth < 0) {
+                state.selectedMonth = 11;
+                state.selectedYear--;
+            } else if (state.selectedMonth > 11) {
+                state.selectedMonth = 0;
+                state.selectedYear++;
+            }
+            renderHistoryMonth();
+        }
+
+        function renderHistoryYear() {
+            const titleElem = document.getElementById('year-title');
+            const gridElem = document.getElementById('yearly-heatmap-grid');
+            const yearDisplay = document.getElementById('current-year-display');
+            if (!gridElem) return;
+
+            if (titleElem) titleElem.textContent = `Yearly Activity Heatmap (${state.selectedYear})`;
+            if (yearDisplay) yearDisplay.textContent = state.selectedYear;
+
+            let html = '';
+            for (let i = 1; i <= 100; i++) {
+                html += `<div class="w-4 h-4 rounded bg-amber-100 dark:bg-amber-900/40 hover:scale-125 transition cursor-pointer" title="Ngày mẫu ${i}"></div>`;
+            }
+            gridElem.innerHTML = html;
+        }
+
+        function changeYear(delta) {
+            state.selectedYear += delta;
+            renderHistoryYear();
+        }
+
+        function setHistoryView(mode) {
+            state.historyView = mode;
+            document.getElementById('history-sub-day').classList.toggle('hidden', mode !== 'day');
+            document.getElementById('history-sub-month').classList.toggle('hidden', mode !== 'month');
+            document.getElementById('history-sub-year').classList.toggle('hidden', mode !== 'year');
+        }
+
+        function requestNotificationPermission() {
+            if ("Notification" in window) {
+                Notification.requestPermission().then(permission => {
+                    const statusText = document.getElementById('notif-status-text');
+                    if (statusText) {
+                        statusText.textContent = permission === "granted" ? "Thông báo: Đã bật" : "Bật thông báo đẩy";
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
